@@ -1,7 +1,8 @@
+import 'package:aullet/models/category.dart';
 import 'package:aullet/models/expense.dart';
-import 'package:aullet/repositories/expense_repository.dart';
+import 'package:aullet/viewmodel/category_view_model.dart';
 import 'package:aullet/viewmodel/expense_view_model.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -19,6 +20,7 @@ class _NewExpensePageState extends State<NewExpensePage> {
   final _amountController = TextEditingController();
   DateTime? _date;
   final _descrController = TextEditingController();
+  bool _didScheduleLoad = false;
 
   @override
   void dispose() {
@@ -27,13 +29,25 @@ class _NewExpensePageState extends State<NewExpensePage> {
     super.dispose();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_didScheduleLoad) {
+      _didScheduleLoad = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final vm = context.read<CategoryViewModel>();
+        await vm.loadCategories();
+      });
+    }
+  }
+
   void _submitForm() async {
     if (_formKey.currentState!.validate() && _selectedCategory != null) {
       final userId = Supabase.instance.client.auth.currentUser!.id;
       final newExpense = Expense(
         id: userId,
         userId: userId,
-        categoryId: _selectedCategory.toString(),
+        categoryId: _selectedCategory!.id,
         amout: double.parse(_amountController.text.trim()),
         date: _date!,
       );
@@ -58,6 +72,7 @@ class _NewExpensePageState extends State<NewExpensePage> {
 
   @override
   Widget build(BuildContext context) {
+    final catVM = context.watch<CategoryViewModel>();
     return Scaffold(
       appBar: AppBar(title: const Text('Nuova Spesa'), centerTitle: true),
       body: Padding(
@@ -76,6 +91,33 @@ class _NewExpensePageState extends State<NewExpensePage> {
                 validator: (value) => value == null || value.trim().isEmpty
                     ? 'Campo obbligatorio'
                     : null,
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<Category>(
+                decoration: InputDecoration(
+                  labelText: 'Categoria',
+                  border: OutlineInputBorder(),
+                ),
+                items: catVM.categories
+                    .map(
+                      (category) => DropdownMenuItem<Category>(
+                        value: category,
+                        child: Text(category.name),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (Category? value) {
+                  setState(() {
+                    _selectedCategory = value;
+                  });
+                },
+                validator: (value) =>
+                    value == null ? 'Inserire categoria' : null,
+              ),
+              ElevatedButton.icon(
+                onPressed: _submitForm,
+                label: const Text('Salva'),
+                icon: const Icon(Icons.save),
               ),
             ],
           ),
