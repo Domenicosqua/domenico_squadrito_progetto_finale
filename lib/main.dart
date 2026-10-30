@@ -47,6 +47,7 @@ class MyApp extends StatelessWidget {
       // wrappo la material app con un consumer che ha valore in ingresso AuthViewModel
       child: Consumer<AuthViewModel>(
         builder: (context, authVM, _) {
+          print('--- STATO AUTH: isLoggedIn = ${authVM.isLoggedIn} ---');
           return MaterialApp(
             title: 'Flutter Demo',
             theme: ThemeData(

@@ -21,7 +21,7 @@ class Expense {
     userId: map['user_id'],
     categoryId: map['category_id'],
     amout: map['amount'],
-    date: map['date'],
+    date: DateTime.parse(map['date']),
     description: map['description'],
   );
 

@@ -14,8 +14,9 @@ class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
+    print('qualcosa');
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ExpenseViewModel>().loadExenses();
+      context.read<ExpenseViewModel>().loadExpenses();
       context.read<CategoryViewModel>().loadCategories();
     });
   }

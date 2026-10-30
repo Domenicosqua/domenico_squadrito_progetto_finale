@@ -14,12 +14,16 @@ class ExpenseViewModel extends ChangeNotifier {
   String? get errorMessagge => _errorMessage;
 
   // carico le spese dell'utente
-  Future<void> loadExenses() async {
+  Future<void> loadExpenses() async {
+    print('--- STAI CHIAMANDO LOAD EXPENSES ---');
     _setIsLoading(true);
     try {
       final user = Supabase.instance.client.auth.currentUser!;
+      print('USER ID: ${user.id}');
       _expenses = await _repo.fetchExpenses(user.id);
+      print('SPESE SCARICATE: ${_expenses.length}');
     } catch (e) {
+      print('ERRORE CATTURATO: $e');
       _errorMessage = e.toString();
     } finally {
       _setIsLoading(false);
