@@ -26,6 +26,7 @@ class ProfileViewModel extends ChangeNotifier {
       // se non esiste creane uno di default
       if (_profile == null) {
         _profile = Profile(
+          id: '',
           userId: user.id,
           displayName: user.email!.split('@')[0],
         );
@@ -36,22 +37,6 @@ class ProfileViewModel extends ChangeNotifier {
       _error = e.toString();
     } finally {
       _setLoading(false);
-    }
-  }
-
-  Future<void> createUserProfile(String name, String avatarUrl) async {
-    final id = Supabase.instance.client.auth.currentUser?.id;
-    if (id == null) return;
-
-    final newProfile = Profile(
-      userId: id,
-      displayName: name,
-      avatarUrl: avatarUrl,
-    );
-    try {
-      await _repo.createProfile(newProfile);
-    } catch (e) {
-      print(e);
     }
   }
 

@@ -144,10 +144,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ElevatedButton(
                     onPressed: () async {
                       if (profile == null) {
-                        await vm.createUserProfile(
-                          _nameCtrl.text.trim(),
-                          _pickedFile?.path ?? '',
-                        );
+                        await vm.loadProfile();
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Profilo creato con successo'),
@@ -155,6 +152,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         );
                       } else {
                         final updatedProfile = Profile(
+                          id: vm.profile!.id,
                           userId: Supabase.instance.client.auth.currentUser!.id,
                           displayName: _nameCtrl.text.trim(),
                           avatarUrl: _pickedFile?.path ?? '',

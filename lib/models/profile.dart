@@ -1,14 +1,21 @@
 class Profile {
   // cosa compone l'oggetto
+  final String id;
   final String userId;
   String displayName;
   String? avatarUrl;
 
   // costruttore
-  Profile({required this.userId, required this.displayName, this.avatarUrl});
+  Profile({
+    required this.userId,
+    required this.displayName,
+    this.avatarUrl,
+    required this.id,
+  });
 
   // trasformiamo da map
   factory Profile.fromMap(Map<String, dynamic> map) => Profile(
+    id: map['id'],
     userId: map['user_id'],
     displayName: map['displayName'],
     avatarUrl: map['avatar_url'],
