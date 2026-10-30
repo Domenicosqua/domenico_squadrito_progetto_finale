@@ -5,6 +5,7 @@ import 'package:aullet/viewmodel/profile_view_model.dart';
 import 'package:aullet/views/auth/login_page.dart';
 import 'package:aullet/views/auth/sign_up_page.dart';
 import 'package:aullet/views/home_view.dart';
+import 'package:aullet/views/new_expense_page.dart';
 import 'package:aullet/views/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -59,6 +60,7 @@ class MyApp extends StatelessWidget {
               '/signup': (_) => const SignUpPage(),
               '/home': (_) => const HomeView(),
               '/profile': (_) => const ProfilePage(),
+              '/new-expense': (_) => const NewExpensePage(),
             },
           );
         },

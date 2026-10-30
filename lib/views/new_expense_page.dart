@@ -49,7 +49,7 @@ class _NewExpensePageState extends State<NewExpensePage> {
         userId: userId,
         categoryId: _selectedCategory!.id,
         amout: double.parse(_amountController.text.trim()),
-        date: _date!,
+        date: _date ?? DateTime.now(),
       );
       try {
         await Provider.of<ExpenseViewModel>(
@@ -67,6 +67,21 @@ class _NewExpensePageState extends State<NewExpensePage> {
               .showSnackBar(SnackBar(content: Text('Errore $e')));
         }
       }
+    }
+  }
+
+  Future<void> _pickDate() async {
+    final pickedDate = await showDatePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      initialDate: DateTime.now(),
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        _date = pickedDate;
+      });
     }
   }
 
@@ -114,6 +129,24 @@ class _NewExpensePageState extends State<NewExpensePage> {
                 validator: (value) =>
                     value == null ? 'Inserire categoria' : null,
               ),
+              const SizedBox(height: 16),
+              InkWell(
+                onTap: _pickDate,
+
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: 'Data',
+                    border: OutlineInputBorder(),
+                    suffixIcon: const Icon(Icons.calendar_month),
+                  ),
+                  child: Text(
+                    _date == null
+                        ? 'Seleziona data'
+                        : '${_date!.day}/${_date!.month}/${_date!.year}',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: _submitForm,
                 label: const Text('Salva'),

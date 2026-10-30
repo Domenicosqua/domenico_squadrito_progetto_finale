@@ -16,7 +16,7 @@ class ExpenseRepository {
   }
 
   Future<void> insertExpense(Expense exp) async {
-    await _client.from('expenses').insert(exp.toMap);
+    await _client.from('expenses').insert(exp.toMap());
   }
 
   Future<void> updateExpense(Expense exp) async {

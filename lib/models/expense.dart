@@ -30,7 +30,7 @@ class Expense {
     'user_id': userId,
     'category_id': categoryId,
     'amount': amout,
-    'date': date,
+    'date': date.toIso8601String(),
     'description': description,
   };
 }

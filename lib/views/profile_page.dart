@@ -1,8 +1,13 @@
+import 'dart:io';
+
+import 'package:aullet/models/profile.dart';
 import 'package:aullet/viewmodel/auth_view_model.dart';
 import 'package:aullet/viewmodel/profile_view_model.dart';
 import 'package:aullet/views/auth/login_page.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -13,6 +18,7 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final _nameCtrl = TextEditingController();
+  File? _pickedFile;
   bool _didScheduleLoad = false;
 
   @override
@@ -42,10 +48,22 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   } */
 
+  Future<void> pickAvatar() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+    if (pickedFile != null) {
+      _pickedFile = File(pickedFile.path);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<ProfileViewModel>();
     final authVM = context.read<AuthViewModel>();
+    final profile = vm.profile;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profilo'),
@@ -72,14 +90,14 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 children: [
                   GestureDetector(
-                    onTap: vm.pickAndUploadAvatar,
+                    onTap: pickAvatar,
                     child: Stack(
                       alignment: Alignment.bottomRight,
                       children: [
                         CircleAvatar(
                           radius: 50,
-                          backgroundImage: vm.selectedFile != null
-                              ? FileImage(vm.selectedFile!)
+                          backgroundImage: _pickedFile != null
+                              ? FileImage(_pickedFile!)
                               : vm.profile?.avatarUrl != null
                               ? NetworkImage(vm.profile!.avatarUrl!)
                               : null,
@@ -103,28 +121,52 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   TextButton(
-                    onPressed: vm.pickAndUploadAvatar,
+                    onPressed: pickAvatar,
                     child: const Text('Cambia Immagine'),
                   ),
-                  ElevatedButton.icon(
+                  /* ElevatedButton.icon(
                     onPressed: () async {
                       await authVM.logOut();
                       Navigator.pushNamedAndRemoveUntil(
                         context,
                         '/login',
                         (route) => false,
-                      );
+                      ); 
                     },
                     label: const Text('Logout'),
                     icon: const Icon(Icons.logout),
-                  ),
+                  ),*/
                   TextField(
                     controller: _nameCtrl,
                     decoration: const InputDecoration(labelText: 'Nome'),
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: vm.updateDisplayName,
+                    onPressed: () async {
+                      if (profile == null) {
+                        await vm.createUserProfile(
+                          _nameCtrl.text.trim(),
+                          _pickedFile?.path ?? '',
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Profilo creato con successo'),
+                          ),
+                        );
+                      } else {
+                        final updatedProfile = Profile(
+                          userId: Supabase.instance.client.auth.currentUser!.id,
+                          displayName: _nameCtrl.text.trim(),
+                          avatarUrl: _pickedFile?.path ?? '',
+                        );
+                        await vm.updateUserProfile(updatedProfile);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Profilo creato con successo'),
+                          ),
+                        );
+                      }
+                    },
                     child: const Text('Salva'),
                   ),
                   if (vm.error != null) ...[

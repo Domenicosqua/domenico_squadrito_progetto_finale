@@ -28,7 +28,7 @@ class _HomeViewState extends State<HomeView> {
     return Scaffold(
       body: expenseVM.isLoading || catVM.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _buildBody(expenseVM, catVM),
+          : _buildBody(expenseVM, catVM, context),
 
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
@@ -50,7 +50,11 @@ class _HomeViewState extends State<HomeView> {
   }
 }
 
-Widget _buildBody(ExpenseViewModel expenseVM, CategoryViewModel catVM) {
+Widget _buildBody(
+  ExpenseViewModel expenseVM,
+  CategoryViewModel catVM,
+  BuildContext context,
+) {
   final expenses = expenseVM.expenses;
   if (expenses.isEmpty) {
     return Center(
@@ -63,7 +67,9 @@ Widget _buildBody(ExpenseViewModel expenseVM, CategoryViewModel catVM) {
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.pushNamed(context, '/new-expense');
+            },
             label: const Text('Aggiungi spesa'),
             icon: const Icon(Icons.add),
           ),
@@ -71,5 +77,22 @@ Widget _buildBody(ExpenseViewModel expenseVM, CategoryViewModel catVM) {
       ),
     );
   }
-  return Placeholder();
+  return ListView.builder(
+    itemCount: expenseVM.expenses.length,
+    itemBuilder: (context, index) {
+      final expense = expenseVM.expenses[index];
+      final category = catVM.categories.firstWhere(
+        (cat) => cat.id == expense.categoryId,
+      );
+      return Card(
+        margin: const EdgeInsets.all(10),
+        child: ListTile(
+          title: Text(expense.amout.toString()),
+          subtitle: Row(
+            children: [Text(category.toString()), Text('${expense.date}')],
+          ),
+        ),
+      );
+    },
+  );
 }

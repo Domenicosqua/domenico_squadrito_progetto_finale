@@ -1,9 +1,7 @@
-import 'dart:io';
-
 import 'package:aullet/models/profile.dart';
 import 'package:aullet/repositories/profile_repository.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileViewModel extends ChangeNotifier {
@@ -12,13 +10,11 @@ class ProfileViewModel extends ChangeNotifier {
   Profile? _profile;
   bool _isLoading = false;
   String? _error;
-  File? _selectedFile;
 
   Profile? get profile => _profile;
+  set profile(Profile profile) => _profile = profile;
   bool get isLoading => _isLoading;
   String? get error => _error;
-  File? get selectedFile => _selectedFile;
-  set selectedFile(File file) => _selectedFile = file;
 
   // carichiamo il profilo dell'utente corrente
   Future<void> loadProfile() async {
@@ -30,7 +26,6 @@ class ProfileViewModel extends ChangeNotifier {
       // se non esiste creane uno di default
       if (_profile == null) {
         _profile = Profile(
-          id: '',
           userId: user.id,
           displayName: user.email!.split('@')[0],
         );
@@ -44,17 +39,32 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> pickAndUploadAvatar() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 80,
+  Future<void> createUserProfile(String name, String avatarUrl) async {
+    final id = Supabase.instance.client.auth.currentUser?.id;
+    if (id == null) return;
+
+    final newProfile = Profile(
+      userId: id,
+      displayName: name,
+      avatarUrl: avatarUrl,
     );
-    if (pickedFile == null) return;
-    selectedFile = File(pickedFile.path);
+    try {
+      await _repo.createProfile(newProfile);
+    } catch (e) {
+      print(e);
+    }
   }
 
-  Future<void> updateDisplayName() async {}
+  Future<void> updateUserProfile(Profile updatedProfile) async {
+    try {
+      await _repo.updateProfile(updatedProfile);
+      profile = updatedProfile;
+    } catch (e) {
+      _error = e.toString();
+      print(_error);
+      rethrow;
+    }
+  }
 
   void _setLoading(bool value) {
     _isLoading = value;
