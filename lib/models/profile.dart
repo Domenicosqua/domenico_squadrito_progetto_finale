@@ -17,7 +17,7 @@ class Profile {
   factory Profile.fromMap(Map<String, dynamic> map) => Profile(
     id: map['id'],
     userId: map['user_id'],
-    displayName: map['displayName'],
+    displayName: map['display_name'],
     avatarUrl: map['avatar_url'],
   );
 

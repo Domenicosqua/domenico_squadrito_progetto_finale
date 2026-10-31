@@ -29,7 +29,7 @@ class _ProfilePageState extends State<ProfilePage> {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         final vm = context.read<ProfileViewModel>();
         await vm.loadProfile();
-        if (!mounted) {
+        if (mounted && vm.profile != null) {
           _nameCtrl.text = vm.profile!.displayName;
         }
       });
@@ -55,7 +55,9 @@ class _ProfilePageState extends State<ProfilePage> {
       imageQuality: 80,
     );
     if (pickedFile != null) {
-      _pickedFile = File(pickedFile.path);
+      setState(() {
+        _pickedFile = File(pickedFile.path);
+      });
     }
   }
 
@@ -97,11 +99,19 @@ class _ProfilePageState extends State<ProfilePage> {
                         CircleAvatar(
                           radius: 50,
                           backgroundImage: _pickedFile != null
-                              ? FileImage(_pickedFile!)
-                              : vm.profile?.avatarUrl != null
+                              ? FileImage(_pickedFile!) as ImageProvider
+                              : (vm.profile?.avatarUrl != null &&
+                                    vm.profile!.avatarUrl!.trim().isNotEmpty &&
+                                    vm.profile!.avatarUrl!.startsWith('http'))
                               ? NetworkImage(vm.profile!.avatarUrl!)
                               : null,
-                          child: vm.profile?.avatarUrl == null
+                          child:
+                              (_pickedFile == null &&
+                                  (vm.profile?.avatarUrl == null ||
+                                      vm.profile!.avatarUrl!.trim().isEmpty ||
+                                      !vm.profile!.avatarUrl!.startsWith(
+                                        'http',
+                                      )))
                               ? const Icon(Icons.person, size: 50)
                               : null,
                         ),
@@ -143,27 +153,27 @@ class _ProfilePageState extends State<ProfilePage> {
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () async {
-                      if (profile == null) {
-                        await vm.loadProfile();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Profilo creato con successo'),
-                          ),
-                        );
-                      } else {
-                        final updatedProfile = Profile(
-                          id: vm.profile!.id,
-                          userId: Supabase.instance.client.auth.currentUser!.id,
-                          displayName: _nameCtrl.text.trim(),
-                          avatarUrl: _pickedFile?.path ?? '',
-                        );
-                        await vm.updateUserProfile(updatedProfile);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Profilo creato con successo'),
-                          ),
-                        );
+                      if (vm.profile == null) return;
+                      String avatarUrl = vm.profile!.avatarUrl ?? '';
+                      if (_pickedFile != null) {
+                        final uploadedUrl = await vm.uploadAvatar(_pickedFile!);
+                        if (uploadedUrl != null) {
+                          avatarUrl = uploadedUrl;
+                        }
                       }
+
+                      final updatedProfile = Profile(
+                        id: vm.profile!.id,
+                        userId: Supabase.instance.client.auth.currentUser!.id,
+                        displayName: _nameCtrl.text.trim(),
+                        avatarUrl: avatarUrl,
+                      );
+                      await vm.updateUserProfile(updatedProfile);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Profilo salvato con successo'),
+                        ),
+                      );
                     },
                     child: const Text('Salva'),
                   ),

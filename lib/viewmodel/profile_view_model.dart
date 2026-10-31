@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:aullet/models/profile.dart';
 import 'package:aullet/repositories/profile_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -33,17 +36,43 @@ class ProfileViewModel extends ChangeNotifier {
         await _repo.createProfile(_profile!);
         _profile = await _repo.fetchProfile(user.id);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       _error = e.toString();
+      print('ERRORE IN LOAD PROFILE: $e'); // <-- Stampalo qui
+      print(stackTrace);
     } finally {
       _setLoading(false);
     }
   }
 
+  Future<String?> uploadAvatar(File url) async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser!.id;
+      final fileExt = url.path.split('.').last;
+      final fileName =
+          '$userId-${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+      final filePath = fileName;
+
+      await Supabase.instance.client.storage
+          .from('image')
+          .upload(filePath, url);
+      final imageUrl = Supabase.instance.client.storage
+          .from('image')
+          .getPublicUrl(filePath);
+      return imageUrl;
+    } catch (e) {
+      print("ATTENZIONE: L'upload su Supabase ha restituito null!");
+      print('ERRORE UPLOAD AVATAR: $e');
+      return null;
+    }
+  }
+
   Future<void> updateUserProfile(Profile updatedProfile) async {
+    print('--- INIZIO SALVATAGGIO PROFILO ---');
     try {
       await _repo.updateProfile(updatedProfile);
       profile = updatedProfile;
+      print('--- PROFILO SALVATO CON SUCCESSO ---');
     } catch (e) {
       _error = e.toString();
       print(_error);
