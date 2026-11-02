@@ -8,7 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class NewExpensePage extends StatefulWidget {
-  const NewExpensePage({super.key});
+  final Expense? exp;
+  const NewExpensePage({super.key, this.exp});
 
   @override
   State<NewExpensePage> createState() => _NewExpensePageState();
@@ -17,10 +18,26 @@ class NewExpensePage extends StatefulWidget {
 class _NewExpensePageState extends State<NewExpensePage> {
   final _formKey = GlobalKey<FormState>();
   Category? _selectedCategory;
-  final _amountController = TextEditingController();
+  late TextEditingController _amountController;
   DateTime? _date;
-  final _descrController = TextEditingController();
+  late TextEditingController _descrController;
   bool _didScheduleLoad = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCategory = context
+        .watch<CategoryViewModel>()
+        .categories
+        .firstWhere((cat) => cat.id == widget.exp?.categoryId);
+    _amountController = TextEditingController(
+      text: widget.exp?.amout.toString() ?? '',
+    );
+    _amountController = TextEditingController(
+      text: widget.exp?.description ?? '',
+    );
+    _date = widget.exp?.date;
+  }
 
   @override
   void dispose() {
@@ -109,6 +126,7 @@ class _NewExpensePageState extends State<NewExpensePage> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<Category>(
+                initialValue: _selectedCategory,
                 decoration: InputDecoration(
                   labelText: 'Categoria',
                   border: OutlineInputBorder(),
@@ -144,6 +162,14 @@ class _NewExpensePageState extends State<NewExpensePage> {
                         ? 'Seleziona data'
                         : '${_date!.day}/${_date!.month}/${_date!.year}',
                   ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _descrController,
+                decoration: InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),

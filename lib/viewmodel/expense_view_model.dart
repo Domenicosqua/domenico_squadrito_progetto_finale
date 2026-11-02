@@ -15,15 +15,11 @@ class ExpenseViewModel extends ChangeNotifier {
 
   // carico le spese dell'utente
   Future<void> loadExpenses() async {
-    print('--- STAI CHIAMANDO LOAD EXPENSES ---');
     _setIsLoading(true);
     try {
       final user = Supabase.instance.client.auth.currentUser!;
-      print('USER ID: ${user.id}');
       _expenses = await _repo.fetchExpenses(user.id);
-      print('SPESE SCARICATE: ${_expenses.length}');
     } catch (e) {
-      print('ERRORE CATTURATO: $e');
       _errorMessage = e.toString();
     } finally {
       _setIsLoading(false);
@@ -45,25 +41,32 @@ class ExpenseViewModel extends ChangeNotifier {
 
   // modifica spesa
   Future<void> updateExpense(Expense updatedExpense) async {
+    _setIsLoading(true);
+    _errorMessage = null;
     try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) throw Exception('Utente non autenticato');
       await _repo.updateExpense(updatedExpense);
-      // cerco indice spesa da aggiornare
-      final index = _expenses.indexWhere((exp) => exp.id == updatedExpense.id);
-      if (index != -1) {
-        _expenses[index] = updatedExpense;
-      }
+      _expenses = await _repo.fetchExpenses(user.id);
     } catch (e) {
       _errorMessage = e.toString();
+    } finally {
+      _setIsLoading(false);
     }
   }
 
   Future<void> deleteExpense(String expenseId) async {
+    _setIsLoading(true);
+    _errorMessage = null;
     try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) throw Exception('Utente non autenticato');
       await _repo.deleteExpense(expenseId);
-      // cerco nell'array dove sta la spesa e la elimino pure li
-      _expenses.removeWhere((exp) => exp.id == expenseId);
+      await _repo.fetchExpenses(user.id);
     } catch (e) {
       _errorMessage = e.toString();
+    } finally {
+      _setIsLoading(false);
     }
   }
 

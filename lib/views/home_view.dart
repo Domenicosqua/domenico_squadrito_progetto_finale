@@ -1,5 +1,9 @@
+import 'package:aullet/models/category.dart';
+import 'package:aullet/utils/color_utils.dart';
+import 'package:aullet/utils/icon_utils.dart';
 import 'package:aullet/viewmodel/category_view_model.dart';
 import 'package:aullet/viewmodel/expense_view_model.dart';
+import 'package:aullet/views/new_expense_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -47,6 +51,16 @@ class _HomeViewState extends State<HomeView> {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const NewExpensePage()),
+          ).then((_) {
+            context.read<ExpenseViewModel>().loadExpenses();
+          });
+        },
+      ),
     );
   }
 }
@@ -69,7 +83,10 @@ Widget _buildBody(
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () {
-              Navigator.pushNamed(context, '/new-expense');
+              Navigator.pushNamed(
+                context,
+                '/new-expense',
+              ).then((_) => context.read<ExpenseViewModel>().loadExpenses());
             },
             label: const Text('Aggiungi spesa'),
             icon: const Icon(Icons.add),
@@ -78,20 +95,55 @@ Widget _buildBody(
       ),
     );
   }
-  return ListView.builder(
+  return ListView.separated(
+    separatorBuilder: (_, __) => const Divider(),
     itemCount: expenseVM.expenses.length,
     itemBuilder: (context, index) {
       final expense = expenseVM.expenses[index];
       final category = catVM.categories.firstWhere(
         (cat) => cat.id == expense.categoryId,
+        orElse: () => Category(
+          id: '',
+          name: 'Unknown',
+          icon: 'category',
+          color: 'FF000000',
+        ),
       );
-      return Card(
-        margin: const EdgeInsets.all(10),
-        child: ListTile(
-          title: Text(expense.amout.toString()),
-          subtitle: Row(
-            children: [Text(category.toString()), Text('${expense.date}')],
-          ),
+      final iconData = iconMap[category.icon] ?? Icons.category;
+      final color = parsHexColor(category.color);
+      final date = expense.date;
+      final formattedDate =
+          '${date.day.toString().padLeft(2, '0')}/'
+          '${date.month.toString().padLeft(2, '0')}/'
+          '${date.year}';
+      return ListTile(
+        leading: Icon(iconData, color: color),
+        title: Text(
+          expense.amout.toStringAsFixed(2),
+          style: TextStyle(color: color, fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(
+          '$formattedDate ${expense.description != null && expense.description!.isNotEmpty ? '\n ${expense.description}' : ''}',
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => NewExpensePage(exp: expense),
+                );
+              },
+              icon: const Icon(Icons.edit),
+            ),
+            IconButton(
+              onPressed: () {
+                expenseVM.deleteExpense(expense.id);
+              },
+              icon: const Icon(Icons.delete),
+            ),
+          ],
         ),
       );
     },

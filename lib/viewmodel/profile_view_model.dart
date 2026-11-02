@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:aullet/models/profile.dart';
 import 'package:aullet/repositories/profile_repository.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
