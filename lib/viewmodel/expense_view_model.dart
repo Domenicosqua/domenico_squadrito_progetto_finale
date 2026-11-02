@@ -62,7 +62,7 @@ class ExpenseViewModel extends ChangeNotifier {
       final user = Supabase.instance.client.auth.currentUser;
       if (user == null) throw Exception('Utente non autenticato');
       await _repo.deleteExpense(expenseId);
-      await _repo.fetchExpenses(user.id);
+      _expenses = await _repo.fetchExpenses(user.id);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {

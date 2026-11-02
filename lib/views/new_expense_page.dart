@@ -26,14 +26,10 @@ class _NewExpensePageState extends State<NewExpensePage> {
   @override
   void initState() {
     super.initState();
-    _selectedCategory = context
-        .watch<CategoryViewModel>()
-        .categories
-        .firstWhere((cat) => cat.id == widget.exp?.categoryId);
     _amountController = TextEditingController(
       text: widget.exp?.amout.toString() ?? '',
     );
-    _amountController = TextEditingController(
+    _descrController = TextEditingController(
       text: widget.exp?.description ?? '',
     );
     _date = widget.exp?.date;
@@ -54,6 +50,17 @@ class _NewExpensePageState extends State<NewExpensePage> {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         final vm = context.read<CategoryViewModel>();
         await vm.loadCategories();
+        if (widget.exp != null) {
+          setState(() {
+            try {
+              _selectedCategory = vm.categories.firstWhere(
+                (cat) => cat.id == widget.exp!.categoryId,
+              );
+            } catch (e) {
+              _selectedCategory = null;
+            }
+          });
+        }
       });
     }
   }
@@ -62,27 +69,36 @@ class _NewExpensePageState extends State<NewExpensePage> {
     if (_formKey.currentState!.validate() && _selectedCategory != null) {
       final userId = Supabase.instance.client.auth.currentUser!.id;
       final newExpense = Expense(
-        id: userId,
+        id: widget.exp?.id ?? '',
         userId: userId,
         categoryId: _selectedCategory!.id,
         amout: double.parse(_amountController.text.trim()),
         date: _date ?? DateTime.now(),
+        description: _descrController.text.trim(),
       );
-      try {
+      if (widget.exp == null) {
+        try {
+          await Provider.of<ExpenseViewModel>(
+            context,
+            listen: false,
+          ).addExpense(newExpense);
+          if (mounted) {
+            final messenger = ScaffoldMessenger.of(context);
+            Navigator.pop(context);
+            messenger.showSnackBar(SnackBar(content: Text('Spesa salvata')));
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text('Errore $e')));
+          }
+        }
+      } else {
         await Provider.of<ExpenseViewModel>(
           context,
           listen: false,
-        ).addExpense(newExpense);
-        if (mounted) {
-          final messenger = ScaffoldMessenger.of(context);
-          Navigator.pop(context);
-          messenger.showSnackBar(SnackBar(content: Text('Spesa salvata')));
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('Errore $e')));
-        }
+        ).updateExpense(newExpense);
+        Navigator.pop(context);
       }
     }
   }
@@ -169,6 +185,7 @@ class _NewExpensePageState extends State<NewExpensePage> {
                 controller: _descrController,
                 decoration: InputDecoration(
                   labelText: 'Description',
+
                   border: OutlineInputBorder(),
                 ),
               ),
