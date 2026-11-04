@@ -70,10 +70,9 @@ class _ConfrontoStatisticState extends State<ConfrontoStatistic> {
       value: value,
       items: [
         const DropdownMenuItem(value: null, child: Text('tutti i mesi')),
-        ...List.generate(
-          12,
-          (i) => i + 1,
-        ).map((m) => DropdownMenuItem(value: m, child: Text(_monthName[m]))),
+        ...List.generate(12, (i) => i + 1).map(
+          (m) => DropdownMenuItem(value: m, child: Text(_monthName[m - 1])),
+        ),
       ],
       onChanged: (m) {
         if (isFirst) {
@@ -138,7 +137,7 @@ class _ConfrontoStatisticState extends State<ConfrontoStatistic> {
                       'Differenza: €${_comparison!['difference'].toStringAsFixed(2)}',
                     ),
                     Text(
-                      'Variazione%: €${_comparison!['percentChange'].toStringAsFixed(1)}',
+                      'Variazione%: ${_comparison!['percentChange'].toStringAsFixed(1)}%',
                     ),
                     SizedBox(
                       height: 200,
@@ -171,6 +170,15 @@ class _ConfrontoStatisticState extends State<ConfrontoStatistic> {
                             ),
                           ),
                           barGroups: [
+                            BarChartGroupData(
+                              x: 0,
+                              barRods: [
+                                BarChartRodData(
+                                  toY: _comparison!['period1'],
+                                  width: 20,
+                                ),
+                              ],
+                            ),
                             BarChartGroupData(
                               x: 0,
                               barRods: [
