@@ -41,12 +41,23 @@ class _HomeViewState extends State<HomeView> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            IconButton(onPressed: () {}, icon: const Icon(Icons.home)),
+            IconButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/home');
+              },
+              icon: const Icon(Icons.home),
+            ),
             IconButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/profile');
               },
               icon: const Icon(Icons.person),
+            ),
+            IconButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/statistics');
+              },
+              icon: const Icon(Icons.bar_chart),
             ),
           ],
         ),

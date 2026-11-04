@@ -2,11 +2,13 @@ import 'package:aullet/viewmodel/auth_view_model.dart';
 import 'package:aullet/viewmodel/category_view_model.dart';
 import 'package:aullet/viewmodel/expense_view_model.dart';
 import 'package:aullet/viewmodel/profile_view_model.dart';
+import 'package:aullet/viewmodel/statistic_viewmodel.dart';
 import 'package:aullet/views/auth/login_page.dart';
 import 'package:aullet/views/auth/sign_up_page.dart';
 import 'package:aullet/views/home_view.dart';
 import 'package:aullet/views/new_expense_page.dart';
 import 'package:aullet/views/profile_page.dart';
+import 'package:aullet/views/statistics/statistics_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
@@ -43,6 +45,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ProfileViewModel()),
         ChangeNotifierProvider(create: (_) => CategoryViewModel()),
         ChangeNotifierProvider(create: (_) => ExpenseViewModel()),
+        ChangeNotifierProvider(create: (_) => StatisticViewmodel()),
       ],
       // wrappo la material app con un consumer che ha valore in ingresso AuthViewModel
       child: Consumer<AuthViewModel>(
@@ -62,6 +65,7 @@ class MyApp extends StatelessWidget {
               '/home': (_) => const HomeView(),
               '/profile': (_) => const ProfilePage(),
               '/new-expense': (_) => const NewExpensePage(),
+              '/statistics': (_) => const StatisticsPage(),
             },
           );
         },
